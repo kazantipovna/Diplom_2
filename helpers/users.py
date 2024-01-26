@@ -1,37 +1,37 @@
 import allure
 import requests
-import random
-import string
+from faker import Faker
 
 from tests.data import urls
+
+
+def create_test_user():
+    """Создает словарь с данными тестового пользователя"""
+    fake_data = Faker()
+    test_user = {'email': fake_data.email(),
+                 'password': fake_data.password(),
+                 'name': fake_data.user_name()}
+    return test_user
 
 
 @allure.step('Создаем пользователя:')
 def register_new_user():
     """Создаем пользователя, записываем его данные в список и возвращаем этот список"""
-    def generate_random_string(length):
-        letters = string.ascii_lowercase
-        random_string = ''.join(random.choice(letters) for i in range(length))
-        return random_string
-
     user_data = []
-
-    email = generate_random_string(10) + '@yq.ru'
-    password = generate_random_string(10)
-    name = generate_random_string(10)
+    user = create_test_user()
 
     payload = {
-        "email": email,
-        "password": password,
-        "name": name
+        "email": user['email'],
+        "password": user['password'],
+        "name": user['name']
     }
 
     response = requests.post(urls.register_url, data=payload)
 
     if response.status_code == 200:
-        user_data.append(email)
-        user_data.append(password)
-        user_data.append(name)
+        user_data.append(user['email'])
+        user_data.append(user['password'])
+        user_data.append(user['name'])
         user_data.append(response.json()['accessToken'])
 
     with allure.step(f'Создан пользователь email = {user_data[0]}, password = {user_data[1]}, '
